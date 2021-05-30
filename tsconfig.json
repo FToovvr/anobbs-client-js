@@ -1,0 +1,26 @@
+{
+    "compilerOptions": {
+        // https://stackoverflow.com/a/67371788
+        // for Node.js 16
+        "module": "CommonJS",
+        "moduleResolution": "node",
+        "target": "ES2021",
+        "lib": [
+            "ES2021",
+        ],
+        "esModuleInterop": true,
+        // misc
+        "declaration": true,
+        "outDir": "dist",
+        "strict": true,
+        "downlevelIteration": true,
+        "noImplicitAny": true,
+    },
+    "include": [
+        "src",
+    ],
+    "exclude": [
+        "node_modules",
+        "**/__tests__/*",
+    ],
+}
