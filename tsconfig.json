@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        "rootDir": "src",
         // https://stackoverflow.com/a/67371788
         // for Node.js 16
         "module": "CommonJS",
