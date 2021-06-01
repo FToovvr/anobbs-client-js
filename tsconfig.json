@@ -5,9 +5,9 @@
         // for Node.js 16
         "module": "CommonJS",
         "moduleResolution": "node",
-        "target": "ES2021",
+        "target": "ES2020",
         "lib": [
-            "ES2021",
+            "ES2020",
         ],
         "esModuleInterop": true,
         // misc
