@@ -3,14 +3,18 @@ import _ from 'lodash';
 import { URL, URLSearchParams } from 'url';
 import AbortController from 'abort-controller';
 
-import nodeFetch, { Response } from 'node-fetch';
+import nodeFetch, { Headers, Response } from 'node-fetch';
 export { Response } from 'node-fetch';
 import { NodeFetchRequestInit, NodeFetchReturn } from './node-fetch-types';
+import { CookieJar } from 'tough-cookie';
 
 import { HTTPStatusError, timeoutError } from './errors';
 
 export interface RequestInitExPart {
     urlQueries?: Record<string, string> //ConstructorParameters<typeof URLSearchParams>[0];
+
+    jar?: CookieJar;
+    jarOptions?: CookieJar.SetCookieOptions;
 
     /**
      * 超时设定，以毫秒为单位。
@@ -33,8 +37,8 @@ export default function makeFtoFetch<FetchRequestInit extends NodeFetchRequestIn
 ): (info: string, init?: FetchRequestInit & RequestInitExPart) => NodeFetchReturn {
     const fetch = _fetch ?? nodeFetch;
 
-    return (async (input: string, init?: FetchRequestInit & RequestInitExPart) => {
-        init = init ?? {} as (FetchRequestInit & RequestInitExPart);
+    const ftoFetch = (async (input: string, init?: FetchRequestInit & RequestInitExPart): Promise<nodeFetch.Response> => {
+        init = { ...(init ?? {} as (FetchRequestInit & RequestInitExPart)) };
 
         // << URL 参数
         if (init.urlQueries) {
@@ -45,16 +49,27 @@ export default function makeFtoFetch<FetchRequestInit extends NodeFetchRequestIn
             }
             input = inputUrl.href;
         }
-        delete init.urlQueries;
+        // delete init.urlQueries;
+
+        // << CookieJar Part A
+        const jar = init.jar;
+        const jarOptions = init.jarOptions;
+        // delete init.jar, init.jarOptions;
+        const cookieString = await jar?.getCookieString(input);
+        if (cookieString) {
+            const headers = new Headers(init.headers);
+            headers.append('cookie', cookieString);
+            init.headers = headers;
+        }
 
         // << Timeout Part A
         const { timeout } = init;
-        delete init.timeout;
+        // delete init.timeout;
 
         // << 重试 Part A
         const retryDelay = init.retryDelay;
         const retryOn = init.retryOn;
-        delete init.retryDelay, init.retryOn;
+        // delete init.retryDelay, init.retryOn;
 
         for (let currentAttempts = 1; ; currentAttempts++) {
             // << Timeout Part B
@@ -79,9 +94,30 @@ export default function makeFtoFetch<FetchRequestInit extends NodeFetchRequestIn
 
             let response: Response | undefined;
             try {
-                response = await fetch(input, init);
+                response = await fetch(input, { ...init, redirect: 'manual' });
                 if (timeoutId != null) {
                     clearTimeout(timeoutId);
+                }
+
+                // << CookieJar Part B
+                for (const newCookie of response.headers.raw()['set-cookie'] ?? []) {
+                    await jar?.setCookie(newCookie, response.url, { ignoreError: true, ...jarOptions });
+                }
+
+                { // << CookieJar Part C
+                    // 思路取自 https://github.com/valeriangalliat/fetch-cookie/blob/eaaa155c589aa23737e446de058ed269c3b81f6c/node-fetch.js
+                    const redirectStatus = [301, 302, 303, 307];
+                    if (redirectStatus.indexOf(response.status) >= 0
+                        && init.redirect != 'manual' && (init.follow ?? 0 > 0)) {
+                        // TODO: NULL 值抛异常？
+                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                        const localtion = response.headers.get('location')!;
+                        return await ftoFetch(localtion, {
+                            ...init,
+                            follow: init.follow === undefined ? undefined : init.follow -1,
+                            ...(response.status === 307 ? {} : { method: 'GET', body: null }),
+                        });
+                    }
                 }
 
                 // << 检验 HTTP 响应状态
@@ -113,6 +149,9 @@ export default function makeFtoFetch<FetchRequestInit extends NodeFetchRequestIn
             return response;
         }
     });
+
+    return ftoFetch;
+
 }
 
 export const fetch = makeFtoFetch();

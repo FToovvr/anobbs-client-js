@@ -1,6 +1,6 @@
 import _ from 'lodash';
 
-import { advanceTimersNTimes, exampleDomain, exampleUrl, notExampleUrl } from "./test-fixtures";
+import { advanceTimersNTimes, exampleUrl, notExampleUrl } from "./test-fixtures";
 
 import { createFetchInstance } from "./fetch-instance";
 import { HTTPStatusError, timeoutError } from './errors';
@@ -24,63 +24,6 @@ describe('fetch-instance', () => {
             return '';
         });
         await fetchInstance(exampleUrl, { urlQueries: { b: '2' } });
-
-    });
-
-    describe('CookieJar', () => {
-
-        test('Mock', async () => {
-            const jar = new CookieJar();
-            jar.setCookieSync('answer=42', exampleUrl);
-            jar.setCookieSync('xxx=yyy', exampleUrl);
-            const fetchInstance = createFetchInstance({ jar });
-
-            const expireDate = (() => {
-                const d = new Date();
-                d.setFullYear(d.getFullYear() + 1);
-                return d;
-            })();
-            // FIXME: 不知为何不生效？
-            fetchMock.mockResponseOnce('', {
-                status: 200,
-                headers: {
-                    'Set-Cookie': `foo=bar; path=/; Expires=${expireDate.toUTCString()}; domain=${exampleDomain}`,
-                },
-            });
-            await fetchInstance(exampleUrl);
-
-            fetchMock.mockResponseOnce(async (req) => {
-                expect(req.headers.get('cookie')).toMatch(/(^|;)\s*answer=42\s*(;|$)/);
-                expect(req.headers.get('cookie')).toMatch(/(^|;)\s*xxx=yyy\s*(;|$)/);
-                // expect(req.headers.get('cookie')).toMatch(/(^|;)\s*foo=bar\s*(;|$)/);
-                return '';
-            });
-            await fetchInstance(exampleUrl);
-        });
-
-        // NOTE: 跳过需要实际访问网络的测试
-        test.skip('实测', async () => {
-
-            fetchMock.dontMock();
-
-            const jar1 = new CookieJar();
-            const fetchInstance1 = createFetchInstance({ jar: jar1 });
-            await fetchInstance1('https://httpbin.org/cookies/set/foo/bar');
-
-            const jar2 = new CookieJar();
-            const fetchInstance2 = createFetchInstance({ jar: jar2 });
-            await fetchInstance2('https://httpbin.org/cookies/set/key/value');
-
-            const cookies1 = jar1.serializeSync().cookies;
-            expect(cookies1.length).toBe(1);
-            expect(cookies1[0].key).toBe('foo');
-            expect(cookies1[0].value).toBe('bar');
-            const cookies2 = jar2.serializeSync().cookies;
-            expect(cookies2.length).toBe(1);
-            expect(cookies2[0].key).toBe('key');
-            expect(cookies2[0].value).toBe('value');
-
-        });
 
     });
 

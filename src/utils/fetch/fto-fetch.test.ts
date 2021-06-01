@@ -1,8 +1,10 @@
 import fetchMock from 'jest-fetch-mock';
-import { advanceTimersNTimes, exampleUrl, rejectError } from './test-fixtures';
+import { advanceTimersNTimes, exampleDomain, exampleUrl, rejectError } from './test-fixtures';
 
 import { fetch } from './fto-fetch';
 import { HTTPStatusError, timeoutError } from './errors';
+
+import { CookieJar } from "tough-cookie";
 
 beforeEach(() => {
     jest.resetAllMocks();
@@ -21,6 +23,62 @@ describe('fto-fetch', () => {
 
     });
 
+    describe('CookieJar', () => {
+
+        test('Mock', async () => {
+            const jar = new CookieJar();
+            jar.setCookieSync('answer=42', exampleUrl);
+            jar.setCookieSync('xxx=yyy', exampleUrl);
+
+            const expireDate = (() => {
+                const d = new Date();
+                d.setFullYear(d.getFullYear() + 1);
+                return d;
+            })();
+            // FIXME: 不知为何不生效？
+            fetchMock.mockResponseOnce('', {
+                status: 200,
+                headers: {
+                    'set-cookie': `foo=bar; path=/; Expires=${expireDate.toUTCString()}; domain=${exampleDomain}`,
+                },
+                url: exampleUrl,
+            });
+            await fetch(exampleUrl, { jar });
+
+            fetchMock.mockResponseOnce(async (req) => {
+                // expect(req.headers.get('cookie')).toMatch(/(^|;)\s*answer=42\s*(;|$)/);
+                // expect(req.headers.get('cookie')).toMatch(/(^|;)\s*xxx=yyy\s*(;|$)/);
+                // expect(req.headers.get('cookie')).toMatch(/(^|;)\s*foo=bar\s*(;|$)/);
+                expect(req.headers.get('cookie')).toBe('answer=42; xxx=yyy; foo=bar');
+                return '';
+            });
+            await fetch(exampleUrl, { jar });
+        });
+
+        // NOTE: 跳过需要实际访问网络的测试
+        test.skip('实测', async () => {
+
+            fetchMock.dontMock();
+
+            const jar1 = new CookieJar();
+            await fetch('https://httpbin.org/cookies/set/foo/bar', { jar: jar1 });
+
+            const jar2 = new CookieJar();
+            await fetch('https://httpbin.org/cookies/set/key/value', { jar: jar2 });
+
+            const cookies1 = jar1.serializeSync().cookies;
+            expect(cookies1.length).toBe(1);
+            expect(cookies1[0].key).toBe('foo');
+            expect(cookies1[0].value).toBe('bar');
+            const cookies2 = jar2.serializeSync().cookies;
+            expect(cookies2.length).toBe(1);
+            expect(cookies2[0].key).toBe('key');
+            expect(cookies2[0].value).toBe('value');
+
+        });
+
+    });
+
     test('超时', async () => {
         jest.useFakeTimers();
         fetchMock.mockResponseOnce(async (_req) => {
@@ -28,7 +86,7 @@ describe('fto-fetch', () => {
             return '';
         });
         const promise = fetch(exampleUrl, { timeout: 10 });
-        jest.advanceTimersByTime(20);
+        await advanceTimersNTimes(1, 20);
         await expect(promise).rejects.toThrowError('Timeout');
     });
 
