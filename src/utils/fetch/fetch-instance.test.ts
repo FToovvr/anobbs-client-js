@@ -27,6 +27,21 @@ describe('fetch-instance', () => {
 
     });
 
+    test('调用实例时 init 的 jar 设为 null 来禁用 CookieJar', async () => {
+
+        const jar = new CookieJar();
+        jar.setCookieSync('xxx=yyy', exampleUrl);
+
+        const fetchInstance = createFetchInstance({ jar });
+
+        fetchMock.mockResponseOnce(async (req) => {
+            expect(req.headers.get('cookie')).toBeNull();
+            return '';
+        });
+        await fetchInstance(exampleUrl, { jar: null });
+
+    });
+
     test('Base URL', async () => {
         const fetchInstance = createFetchInstance({ baseUrl: `${exampleUrl}/foo/` });
         fetchMock.mockResponseOnce(async (req) => {

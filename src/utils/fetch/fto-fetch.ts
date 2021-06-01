@@ -13,7 +13,7 @@ import { HTTPStatusError, timeoutError } from './errors';
 export interface RequestInitExPart {
     urlQueries?: Record<string, string> //ConstructorParameters<typeof URLSearchParams>[0];
 
-    jar?: CookieJar;
+    jar?: CookieJar | null;
     jarOptions?: CookieJar.SetCookieOptions;
 
     /**
