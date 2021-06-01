@@ -111,6 +111,7 @@ describe('fto-fetch', () => {
 
             const maxAttempts = 5;
             let retries = 0;
+            let beforeRetries = 0;
 
             await expect(fetch(exampleUrl, {
                 retryOn: (currentAttempts, error, _response) => {
@@ -121,8 +122,10 @@ describe('fto-fetch', () => {
                     }
                     return false;
                 },
+                beforeRetry: _error => beforeRetries++,
             })).rejects.toThrowError(rejectError);
             expect(retries).toBe(maxAttempts - 1);
+            expect(beforeRetries).toBe(maxAttempts - 1);
         });
 
         test('间隔', async () => {

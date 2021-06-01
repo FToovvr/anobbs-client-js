@@ -30,6 +30,7 @@ export interface RequestInitExPart {
      * 重试间隔，以毫秒为单位。
      */
     retryDelay?: number;
+    beforeRetry?: (error: unknown) => void;
 }
 
 export default function makeFtoFetch<FetchRequestInit extends NodeFetchRequestInit>(
@@ -69,7 +70,8 @@ export default function makeFtoFetch<FetchRequestInit extends NodeFetchRequestIn
         // << 重试 Part A
         const retryDelay = init.retryDelay;
         const retryOn = init.retryOn;
-        // delete init.retryDelay, init.retryOn;
+        const beforeRetry = init.beforeRetry;
+        // delete init.retryDelay, init.retryOn, init.beforeRetry;
 
         for (let currentAttempts = 1; ; currentAttempts++) {
             // << Timeout Part B
@@ -137,6 +139,7 @@ export default function makeFtoFetch<FetchRequestInit extends NodeFetchRequestIn
 
                 // << 重试 Part B
                 if (retryOn && retryOn(currentAttempts, e, response)) {
+                    beforeRetry?.(e);
                     if (retryDelay) {
                         await new Promise(resolve => setTimeout(resolve, retryDelay));
                     }
