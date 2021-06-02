@@ -38,7 +38,7 @@ export interface WithRequest {
         info: string,
         init: RequestInit,
         final: {
-            info: nodeFetch.RequestInfo,
+            info: string,
             init: nodeFetch.RequestInit,
         }
     }

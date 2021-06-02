@@ -14,6 +14,8 @@ export interface FetchInstanceInit<FetchRequestInit extends nodeFetch.RequestIni
     requestInterceptor?: (input: string, init?: FetchRequestInit) => [string, FetchRequestInit];
 }
 
+export type FetchInstance = typeof fto.fetch;
+
 /**
  * XXX: `headers` 中重复的头会被替代而非附加
  *
@@ -21,7 +23,7 @@ export interface FetchInstanceInit<FetchRequestInit extends nodeFetch.RequestIni
  */
 export function createFetchInstance(
     instanceInit: fto.RequestInit & FetchInstanceInit<fto.RequestInit>,
-): typeof fto.fetch {
+): FetchInstance {
 
     const fetch = fto.fetch;
     instanceInit = { ...instanceInit };
