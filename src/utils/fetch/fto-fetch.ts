@@ -1,9 +1,11 @@
+import stream from 'stream';
+
 import _ from 'lodash';
 
 import { URL, URLSearchParams } from 'url';
-import AbortController from 'abort-controller';
+import AbortController, { AbortSignal } from 'abort-controller';
 
-import nodeFetch, { Headers } from 'node-fetch';
+import nodeFetch, { Headers, RequestRedirect } from 'node-fetch';
 import { CookieJar } from 'tough-cookie';
 
 import { HTTPStatusError, timeoutError } from './errors';
@@ -31,15 +33,34 @@ export interface RequestInitExPart {
     beforeRetry?: (error: unknown) => void;
 }
 
-export type RequestInit = nodeFetch.RequestInit & RequestInitExPart;
+// export type RequestInit = nodeFetch.RequestInit & RequestInitExPart;
+
+export interface SimplerNodeFetchRequestInit {
+    // whatwg/fetch spec
+    body?: NodeJS.ReadableStream | null;
+    headers?: Headers;
+    method: string;
+    redirect?: RequestRedirect;
+    signal?: AbortSignal;
+
+    // node-fetch extensions
+    // 未包含字段: agent, compress, counter, hostname, port, protocol, size, highWaterMark
+    follow?: number;
+}
+
+export interface RequestInit extends RequestInitExPart {
+    body?: NodeJS.ReadableStream | string | null;
+    headers?: Record<string, string> | Headers;
+    method?: string;
+
+    follow?: number;
+}
 
 export interface WithRequest {
     request: {
-        info: string,
-        init: RequestInit,
         final: {
             info: string,
-            init: nodeFetch.RequestInit,
+            init: SimplerNodeFetchRequestInit,
         }
     }
 }
@@ -48,7 +69,7 @@ export type Response = nodeFetch.Response & WithRequest;
 
 export async function fetch(input: string, init?: RequestInit): Promise<Response> {
 
-    const { input: finalInput, init: finalInit, local } = await (async (input, init)=>{
+    const { input: finalInput, init: finalInit, local } = await (async (input, init) => {
         init = { ...(init ?? {}) };
 
         // << URL 参数
@@ -87,8 +108,19 @@ export async function fetch(input: string, init?: RequestInit): Promise<Response
         const beforeRetry = init.beforeRetry;
         delete init.retryDelay, init.retryOn, init.beforeRetry;
 
+        // 收紧 init 值的类型
+        const finalInit: SimplerNodeFetchRequestInit = {
+            ...(typeof init.body !== 'undefined' ? {
+                body: typeof init.body === 'string' ? stream.Readable.from([init.body]) : init.body,
+            } : {}),
+            ...(typeof init.headers !== 'undefined' ? { headers: new Headers(init.headers) } : {}),
+            method: init.method ?? 'GET',
+
+            follow: init.follow,
+        };
+
         return {
-            input, init: init as nodeFetch.RequestInit,
+            input, init: finalInit,
             local: {
                 jar, jarOptions,
                 timeout,
@@ -125,7 +157,7 @@ export async function fetch(input: string, init?: RequestInit): Promise<Response
             response = new Proxy(_response, {
                 get:(target, property, ...args) => {
                     if (property === 'request') {
-                        return { info: input, init, final: { info: finalInput, init: finalInit } };
+                        return { final: { info: finalInput, init: finalInit } };
                     }
                     return Reflect.get(target, property, ...args);
                 },

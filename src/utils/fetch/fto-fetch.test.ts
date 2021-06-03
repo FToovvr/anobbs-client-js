@@ -156,10 +156,8 @@ describe('fto-fetch', () => {
         fetchMock.mockResponseOnce(async () => '');
         const init = { urlQueries: { a: '1', b: '2' } };
         const response = await fetch(exampleUrl, init);
-        expect(response.request.info).toBe(exampleUrl);
-        expect(response.request.init).toEqual(init);
         expect(response.request.final.info).toBe(`${exampleUrl}/?a=1&b=2`);
-        expect(response.request.final.init).toEqual({});
+        expect(response.request.final.init).toEqual({ method: "GET" });
 
     });
 
