@@ -1,4 +1,4 @@
-type NoUndefinedFields<Ob> = { [K in keyof Ob]-?: Ob[K] };
+import { NoUndefinedFields } from "./type-utils";
 
 export function createOptionsResolver<T extends { [key: string]: unknown }>(
     _chain: (T | null)[]): T {
