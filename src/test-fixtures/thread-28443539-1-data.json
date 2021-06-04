@@ -1,6 +1,3 @@
-/* eslint-disable */
-// GET https://nmb.fastmirror.org/Api/thread?id=28443539&page=1
-export default
 {
   "id" : "28443539",
   "replyCount" : "4",

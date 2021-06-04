@@ -37,7 +37,7 @@ export class Post {
     static parseDateText(text: string): Date {
         const g = /^(.*?)\(.\)(.*?)$/.exec(text);
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const localDate = dateFns.parse(`${g![1]} ${g![2]}`, 'Y-MM-dd HH:mm:ss', new Date(0));
+        const localDate = dateFns.parse(`${g![1]} ${g![2]}`, 'y-MM-dd HH:mm:ss', new Date(0));
         return zonedTimeToUtc(localDate, 'Asia/Shanghai');
     }
 
@@ -54,11 +54,11 @@ export class Post {
     }
 
     get email(): string | null {
-        return this.raw.name !== "" ? this.raw.email : null;
+        return this.raw.email !== "" ? this.raw.email : null;
     }
 
     get title(): string | null {
-        return this.raw.name !== "无标题" ? this.raw.title : null;
+        return this.raw.title !== "无标题" ? this.raw.title : null;
     }
 
     get content(): string {
@@ -116,7 +116,7 @@ export interface ThreadPageRaw extends ThreadBodyRaw {
 export class ThreadPage extends ThreadBody {
     raw: ThreadPageRaw;
 
-    _repliesCache: Post[] | null = null;
+    #repliesCache: Post[] | null = null;
 
     constructor(raw: ThreadPageRaw) {
         super(raw);
@@ -124,10 +124,11 @@ export class ThreadPage extends ThreadBody {
     }
 
     get replies(): Post[] {
-        if (!this._repliesCache) {
-            this._repliesCache = this.raw.replys.map(postRaw => new Post(postRaw));
+        if (!this.#repliesCache) {
+            // `?? []` 以防万一，虽然一般没有回应时也会是空数组
+            this.#repliesCache = (this.raw.replys ?? []).map(postRaw => new Post(postRaw));
         }
-        return this._repliesCache;
+        return this.#repliesCache;
     }
 
 }
