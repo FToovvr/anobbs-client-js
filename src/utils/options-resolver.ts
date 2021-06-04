@@ -1,4 +1,4 @@
-export function createOptionsResolver<T extends { [key: string]: unknown }>(
+export function createOptionsResolver<T extends Record<string, unknown>>(
     _chain: (T | null)[]): T {
 
     const chain = _chain.flatMap(x => x ? [x]: []);
@@ -16,7 +16,7 @@ export function createOptionsResolver<T extends { [key: string]: unknown }>(
 
 }
 
-export function createOptionsResolverWithDefaults<T extends { [key: string]: unknown }>(
+export function createOptionsResolverWithDefaults<T extends Record<string, unknown>>(
     _chain: (T | null)[], defaults: Required<T>): Required<T> {
 
     const chain = _chain.flatMap(x => x ? [x]: []);
