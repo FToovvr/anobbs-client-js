@@ -26,7 +26,7 @@ export function createFetchInstance(
 ): FetchInstance {
 
     const fetch = fto.fetch;
-    instanceInit = { ...instanceInit };
+    instanceInit = _.cloneDeep(instanceInit);
 
     // << Base URL Part A
     const baseUrl = instanceInit.baseUrl;
@@ -38,7 +38,8 @@ export function createFetchInstance(
 
     return (async (input: string, init?: fto.RequestInit) => {
 
-        init = _.merge(instanceInit, init);
+        // 把 `_.cloneDeep` 套在最外层会导致 `instanceInit` 受影响，为什么…？
+        init = _.merge(_.cloneDeep(instanceInit), init);
 
         if (baseUrl) {
             input = (new URL(input, baseUrl)).href;
