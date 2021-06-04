@@ -1,5 +1,9 @@
 # AnoBBS Client for Node.js
 
+[![GitHub license](https://img.shields.io/github/license/FToovvr/anobbs-client-js.svg)](https://github.com/FToovvr/anobbs-client-js/blob/master/LICENSE)
+[![NPM version](https://img.shields.io/npm/v/anobbs-client)](http://npmjs.com/package/anobbs-client)
+[![GitHub issues](https://img.shields.io/github/issues/FToovvr/anobbs-client-js.svg)](https://GitHub.com/FToovvr/anobbs-client-js/issues/)
+
 注：本库适用于 Node.js 运行环境，目前不考虑支持浏览器环境。
 
 ## 测试
