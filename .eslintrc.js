@@ -18,19 +18,17 @@ module.exports = {
     "rules": {
         // 空格相关
         "indent": ["error", 4],
-        "no-trailing-spaces": "warn",
-        "no-multi-spaces": "warn",
-        "object-curly-spacing": ["warn", "always"],
-        "array-bracket-spacing": ["warn", "never"],
-        "comma-spacing": ["warn", { "before": false, "after": true }],
-        "keyword-spacing": ["warn", { "before": true, "after": true }],
-        "linebreak-style": [
-            "error",
-            "unix",
-        ],
+        "no-trailing-spaces": "error",
+        "no-multi-spaces": "error",
+        "object-curly-spacing": ["error", "always"],
+        "array-bracket-spacing": ["error", "never"],
+        "comma-spacing": ["error", { "before": false, "after": true }],
+        "keyword-spacing": ["error", { "before": true, "after": true }],
+        "linebreak-style": ["error", "unix"],
 
         // 要求分号
-        "semi": ["error", "always"],
+        "semi": "off",
+        "@typescript-eslint/semi": ["error", "always"],
         // 结尾逗号
         "comma-dangle": ["error", "always-multiline"],
 
@@ -40,5 +38,8 @@ module.exports = {
 
         // 允许 fallthrough
         "no-fallthrough": "off",
+
+        // 允许额外标记可推断的类型
+        "@typescript-eslint/no-inferrable-types": "off",
     },
 };
