@@ -1,6 +1,5 @@
 import { CookieJar } from 'tough-cookie';
 
-import { NoUndefinedFields } from './utils/type-utils';
 import { createOptionsResolverWithDefaults } from "./utils/options-resolver";
 import { RequiresLoginException } from "./errors";
 import { createFetchInstance, FetchInstance } from './utils/fetch';
@@ -31,7 +30,7 @@ export interface Options {
     [key: string]: unknown;
     retries?: number;
 }
-export const defaultOptions: NoUndefinedFields<Options> = {
+export const defaultOptions: Required<Options> = {
     retries: 3,
 };
 

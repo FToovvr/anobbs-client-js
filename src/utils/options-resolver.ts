@@ -1,5 +1,3 @@
-import { NoUndefinedFields } from "./type-utils";
-
 export function createOptionsResolver<T extends { [key: string]: unknown }>(
     _chain: (T | null)[]): T {
 
@@ -19,7 +17,7 @@ export function createOptionsResolver<T extends { [key: string]: unknown }>(
 }
 
 export function createOptionsResolverWithDefaults<T extends { [key: string]: unknown }>(
-    _chain: (T | null)[], defaults: NoUndefinedFields<T>): NoUndefinedFields<T> {
+    _chain: (T | null)[], defaults: Required<T>): Required<T> {
 
     const chain = _chain.flatMap(x => x ? [x]: []);
 
@@ -32,6 +30,6 @@ export function createOptionsResolverWithDefaults<T extends { [key: string]: unk
             }
             return defaults[property as string];
         },
-    }) as NoUndefinedFields<T>;
+    }) as Required<T>;
 
 }

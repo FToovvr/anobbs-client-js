@@ -1,1 +1,0 @@
-export type NoUndefinedFields<Ob> = { [K in keyof Ob]-?: Ob[K] };

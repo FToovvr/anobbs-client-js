@@ -30,15 +30,15 @@ describe('options-resolver', () => {
 
         interface Options {
             [key: string]: unknown;
-            foo?: string;
+            foo?: string | null;
             bar?: unknown;
         }
 
         const resolver = createOptionsResolverWithDefaults<Options>([
-            { foo: 'foo' },
+            { foo: null },
         ], { foo: 'default_foo', bar: 42 });
 
-        expect(resolver.foo).toBe('foo');
+        expect(resolver.foo).toBeNull();
         expect(resolver.bar).toBe(42);
 
     });
