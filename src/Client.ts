@@ -1,5 +1,5 @@
 import { BaseClient, Options as BaseOptions, defaultOptions as baseDefaultOptions } from "./BaseClient";
-import { ThreadPage, ThreadPageRaw } from "./objects";
+import { BoardThread, ThreadPage, ThreadPageRaw } from "./objects";
 import { GatekeptException } from "./errors";
 import { createOptionsResolverWithDefaults } from "./utils/options-resolver";
 
@@ -44,16 +44,13 @@ export class Client extends BaseClient {
         this.fallbackOptions = args.fallbackOptions;
     }
 
-    /**
-     * @deprecated 稍后会进行封装
-     */
-    async getBoardPageJson({
+    async getBoardPage({
         boardId, pageNumber,
         options,
     }: {
         boardId: number; pageNumber?: number;
         options?: Options;
-    }): Promise<{ data: unknown; }> {
+    }): Promise<{ data: BoardThread[]; }> {
 
         const resolvedOptions = createOptionsResolverWithDefaults<Options>([this.fallbackOptions, options ?? null], defaultOptions);
         const { boardGatekeeperPageNumber, loginPolicy } = resolvedOptions;
@@ -71,7 +68,7 @@ export class Client extends BaseClient {
             loginPolicy,
         );
 
-        return await this.getJson('/showf', {
+        const { data } = await this.getJson('/showf', {
             queries: {
                 id: String(boardId),
                 page: String(pageNumber),
@@ -79,6 +76,10 @@ export class Client extends BaseClient {
             withCookies,
             options: resolvedOptions,
         });
+
+        return {
+            data: (data as ThreadPageRaw[]).map(t => new BoardThread(t)),
+        };
 
     }
 

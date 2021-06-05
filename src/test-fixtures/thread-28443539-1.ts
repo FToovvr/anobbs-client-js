@@ -1,12 +1,13 @@
-/* eslint-disable no-useless-escape */
+import _ from 'lodash';
+
 import { ThreadPage } from "../objects";
 
 // GET https://nmb.fastmirror.org/Api/thread?id=28443539&page=1
-import data from './thread-28443539-1-data.json';
+import _data from './thread-28443539-1-data.json';
+export const data = _.cloneDeep(_data);
 data.replys = data.replys.slice(0, 2);
-export default data;
 
-export const expected: Omit<ThreadPage, '__repliesCache'> = {
+export const expected: Omit<ThreadPage, '#repliesCache'> = {
     raw: data,
 
     id: 28443539,
