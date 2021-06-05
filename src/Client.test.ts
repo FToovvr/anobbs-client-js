@@ -1,5 +1,7 @@
+// import utils from 'util';
 
-import utils from 'util';
+import dateFns from 'date-fns';
+import { utcToZonedTime } from 'date-fns-tz';
 
 import { URL } from 'url';
 import { Request } from "node-fetch";
@@ -12,6 +14,8 @@ beforeEach(() => {
     jest.resetAllMocks();
     fetchMock.resetMocks();
 });
+
+// TODO: 测试页数等选项对应生成的 URL
 
 describe("获取版块页面", () => {
 
@@ -91,16 +95,16 @@ describe("获取版块页面", () => {
 
     });
 
-    describe.skip('实测', () => {
+    test.skip('实测', async () => {
+        fetchMock.dontMockOnce();
+        const client = createClient(false);
+        const { data: page } = await client.getBoardPage({ boardId: 111 });
+        // console.log(utils.inspect(page, { showHidden:true, colors: true, getters: true }));
 
-        test("获取到的跑团版第一页内容不应为空", () => {
-            // TODO
-        });
-
-        test("页面中主题串的最后修改时间不应为空", () => {
-            // TODO
-        });
-
+        // 获取到的跑团版第一页内容不应为空
+        expect(page.length).toBeGreaterThan(0);
+        // 页面中主题串的最后修改时间不应为空
+        page.map(t => expect(t.lastModifiedTime).not.toBeNull());
     });
 
 });
@@ -183,10 +187,27 @@ describe("获取串页面", () => {
 
     });
 
-    describe.skip('实测', () => {
+    test.skip('实测', async () => {
+        fetchMock.dontMockOnce();
+        const client = createClient(false);
+        const { data: thread } = await client.getThreadPage({ threadId: 49607 });
+        // console.log(utils.inspect(thread, { showHidden:true, colors: true, getters: true }));
 
-        // TODO
-
+        expect(thread.userId).toBe("g3qeXeYq");
+        expect(thread.content).toBe("这是芦苇");
+        expect(thread.attachmentBase).not.toBeNull();
+        expect(thread.title).toBe("想歪的给我自重");
+        expect(thread.email).toBeNull();
+        const localCreatedAt = utcToZonedTime(thread.createdAt, 'Asia/Shanghai');
+        expect(
+            dateFns.format(localCreatedAt, 'y-MM-dd')
+            + "(" + "一二三四五六日"[(Number(dateFns.format(localCreatedAt, 'c'))-2+7)%7] + ")"
+            + dateFns.format(localCreatedAt, 'HH:mm:ss'),
+        ).toBe("2012-02-09(\u56db)01:08:45");
     });
+
+    // TODO 登陆访问 100+ 页面
+
+    // TODO 404 页面
 
 });
