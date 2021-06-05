@@ -10,7 +10,7 @@
 
 `npm run test`
 
-部分需要实际请求服务器的测试项需要在项目 `src/test-fixtures` 中包含 `client-secrets.test.json` 才能运行，内容格式如下：
+部分需要实际请求服务器的测试项需要在项目 `src/test-fixtures` 中包含 `client-secrets.test.json` 才能运行，内容格式如下：
 
 ``` jsonc
 // 注：实际文件中不能存在注释
