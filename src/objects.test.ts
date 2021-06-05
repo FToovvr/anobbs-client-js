@@ -1,9 +1,21 @@
-import { Post, ThreadPage } from './objects';
+import { Post } from './objects';
 
+import { createClient } from './test-fixtures/helpers';
 import data, { expected } from './test-fixtures/thread-28443539-1';
 
+beforeEach(() => {
+    jest.resetAllMocks();
+    fetchMock.resetMocks();
+});
+
 test('ThreadPage', async () => {
-    const page = new ThreadPage(data);
+    const client = createClient(true);
+
+    fetchMock.mockResponseOnce(async (_) => {
+        return JSON.stringify(data);
+    });
+
+    const { data: page } = await client.getThreadPage({ threadId: Number(data.id ) });
 
     function compare<T extends Post>(post: T, expected: Record<string, unknown>) {
         for (const [key, value] of Object.entries(expected)) {
@@ -20,7 +32,6 @@ test('ThreadPage', async () => {
                 // @ts-expect-error 没问题
                 expect(post[key]).toEqual(value);
             }
-
         }
     }
     compare(page, expected);

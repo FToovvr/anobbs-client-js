@@ -3,5 +3,3 @@
 node_modules
 /dist
 /coverage
-
-/client-secrets.test.json

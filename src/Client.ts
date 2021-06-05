@@ -1,4 +1,5 @@
 import { BaseClient, Options as BaseOptions, defaultOptions as baseDefaultOptions } from "./BaseClient";
+import { ThreadPage, ThreadPageRaw } from "./objects";
 import { GatekeptException } from "./errors";
 import { createOptionsResolverWithDefaults } from "./utils/options-resolver";
 
@@ -51,10 +52,10 @@ export class Client extends BaseClient {
         options,
     }: {
         boardId: number; pageNumber?: number;
-        options: Options;
+        options?: Options;
     }): Promise<{ data: unknown; }> {
 
-        const resolvedOptions = createOptionsResolverWithDefaults<Options>([this.fallbackOptions, options], defaultOptions);
+        const resolvedOptions = createOptionsResolverWithDefaults<Options>([this.fallbackOptions, options ?? null], defaultOptions);
         const { boardGatekeeperPageNumber, loginPolicy } = resolvedOptions;
 
         if (pageNumber ?? 1 > boardGatekeeperPageNumber) {
@@ -81,18 +82,15 @@ export class Client extends BaseClient {
 
     }
 
-    /**
-     * @deprecated 稍后会进行封装
-     */
-    async getThreadPageJson({
+    async getThreadPage({
         threadId, pageNumber,
         options,
     }: {
         threadId: number; pageNumber?: number,
-        options: Options;
-    }): Promise<{ data: unknown; }> {
+        options?: Options;
+    }): Promise<{ data: ThreadPage }> {
 
-        const resolvedOptions = createOptionsResolverWithDefaults<Options>([this.fallbackOptions, options], defaultOptions);
+        const resolvedOptions = createOptionsResolverWithDefaults<Options>([this.fallbackOptions, options ?? null], defaultOptions);
         const { threadGatekeeperPageNumber, loginPolicy } = resolvedOptions;
 
         const withCookies = this.determinWhetherSendsCredentialsForPage(
@@ -107,13 +105,17 @@ export class Client extends BaseClient {
             });
         }
 
-        return await this.getJson(`/thread/id/${threadId}`, {
+        const { data } = await this.getJson(`/thread/id/${threadId}`, {
             queries: {
                 page: String(pageNumber),
             },
             withCookies,
             options: resolvedOptions,
         });
+
+        return {
+            data: new ThreadPage(data as ThreadPageRaw),
+        };
 
     }
 

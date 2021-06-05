@@ -10,6 +10,24 @@
 
 `npm run test`
 
+部分需要实际请求服务器的测试项需要在项目 `src/test-fixtures` 中包含 `client-secrets.test.json` 才能运行，内容格式如下：
+
+``` jsonc
+// 注：实际文件中不能存在注释
+{
+    "host": "adnmb3.com", // 或其他可用的 A 岛主机名
+
+    "client": {
+        "user-agent": "…", // User-Agent
+        "appid": "…" // appid，可为空
+    },
+
+    "user": {
+        "userhash": "…" // 饼干值
+    }
+}
+```
+
 ## 备注
 
 * `node-fetch` `@3` 一直没出正式版，选用 `@3.0.0-beta.9`

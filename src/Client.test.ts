@@ -1,24 +1,9 @@
-import { readFileSync } from "fs";
 
 import { Request } from "node-fetch";
 
-import { UserCookie } from "./BaseClient";
-import { Client, LoginPolicy, Options, defaultOptions } from "./Client";
+import { LoginPolicy, defaultOptions } from "./Client";
 import { GatekeptException } from './errors';
-
-const clientData = JSON.parse(readFileSync('client-secrets.test.json', 'utf-8'));
-
-function createClient(withUser: boolean, options?: Options) {
-    return new Client({
-        userAgent: clientData.client['user-agent'],
-        host: clientData.host,
-        appid: clientData.client.appid,
-        user: withUser ? new UserCookie({
-            userhash: clientData.user.userhash,
-        }) : null,
-        fallbackOptions: options ?? null,
-    });
-}
+import { createClient } from "./test-fixtures/helpers";
 
 beforeEach(() => {
     jest.resetAllMocks();
@@ -107,7 +92,7 @@ describe("获取串页面", () => {
                 return 'null';
             });
 
-            const promise = client.getThreadPageJson({
+            const promise = client.getThreadPage({
                 threadId: 1234567890,
                 pageNumber: gateKeeperPageNumber + (accessesGatekeptPage ? 1 : 0),
                 options: { loginPolicy: policy },
