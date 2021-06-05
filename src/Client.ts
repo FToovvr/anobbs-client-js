@@ -1,6 +1,6 @@
 import { BaseClient, Options as BaseOptions, defaultOptions as baseDefaultOptions } from "./BaseClient";
 import { BoardThread, ThreadPage, ThreadPageRaw } from "./objects";
-import { GatekeptException } from "./errors";
+import { GatekeptException, RequiresLoginException } from "./errors";
 import { createOptionsResolverWithDefaults } from "./utils/options-resolver";
 
 /**
@@ -55,7 +55,10 @@ export class Client extends BaseClient {
         const resolvedOptions = createOptionsResolverWithDefaults<Options>([this.fallbackOptions, options ?? null], defaultOptions);
         const { boardGatekeeperPageNumber, loginPolicy } = resolvedOptions;
 
-        if (pageNumber ?? 1 > boardGatekeeperPageNumber) {
+        if (loginPolicy === 'enforce' && !this.user) {
+            throw new RequiresLoginException();
+        }
+        if ((pageNumber ?? 1) > boardGatekeeperPageNumber) {
             throw new GatekeptException({
                 message: `无论是否登陆，访问超过 ${boardGatekeeperPageNumber} 页的版块页面必会卡页`,
                 context: `获取版块页面 ${JSON.stringify({ boardId })}`,
@@ -94,6 +97,9 @@ export class Client extends BaseClient {
         const resolvedOptions = createOptionsResolverWithDefaults<Options>([this.fallbackOptions, options ?? null], defaultOptions);
         const { threadGatekeeperPageNumber, loginPolicy } = resolvedOptions;
 
+        if (loginPolicy === 'enforce' && !this.user) {
+            throw new RequiresLoginException();
+        }
         const withCookies = this.determinWhetherSendsCredentialsForPage(
             pageNumber ?? 1, threadGatekeeperPageNumber,
             loginPolicy,
