@@ -71,7 +71,7 @@ export class Client extends BaseClient {
             loginPolicy,
         );
 
-        const { data } = await this.getJson('/showf', {
+        const { data } = await this.getJson('showf', {
             queries: {
                 id: String(boardId),
                 page: String(pageNumber),
@@ -112,7 +112,7 @@ export class Client extends BaseClient {
             });
         }
 
-        const { data } = await this.getJson(`/thread/id/${threadId}`, {
+        const { data } = await this.getJson(`thread/id/${threadId}`, {
             queries: {
                 page: String(pageNumber),
             },

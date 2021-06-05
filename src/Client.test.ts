@@ -1,4 +1,7 @@
 
+import utils from 'util';
+
+import { URL } from 'url';
 import { Request } from "node-fetch";
 
 import { LoginPolicy, defaultOptions } from "./Client";
@@ -60,6 +63,10 @@ describe("获取版块页面", () => {
             fetchMock.mockResponseOnce(async (req: Request) => {
                 expect(expectsSendingCredentials).not.toBeNull();
                 expect(client.user?.userhash).not.toBeNull();
+
+                const url = new URL(req.url);
+                expect(url.pathname).toBe('/Api/showf');
+
                 if (expectsSendingCredentials) {
                     expect(req.headers.raw()['cookie']).toEqual([`userhash=${client.user?.userhash}`]);
                 } else {
@@ -148,6 +155,10 @@ describe("获取串页面", () => {
             fetchMock.mockResponseOnce(async (req: Request) => {
                 expect(expectsSendingCredentials).not.toBeNull();
                 expect(client.user?.userhash).not.toBeNull();
+
+                const url = new URL(req.url);
+                expect(url.pathname).toBe('/Api/thread/id/1234567890');
+
                 if (expectsSendingCredentials) {
                     expect(req.headers.raw()['cookie']).toEqual([`userhash=${client.user?.userhash}`]);
                 } else {
