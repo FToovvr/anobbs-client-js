@@ -152,7 +152,7 @@ export class BaseClient {
             urlQueries: { ...queries },
             ...( withCookies ? { } : { jar: null }),
             retryOn: currentAttempts => currentAttempts <= options.retries,
-            // TODO: 改为正式的打 log
+            // TODO: 提供一个 callback 以方便使用者打 log
             beforeRetry: err => console.log(err),
         });
 
