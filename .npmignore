@@ -1,3 +1,8 @@
-.test.ts
-test-fixtures.ts
-test-fixtures/
+*
+!/dist/**/*
+
+*.test.js
+*.test.d.ts
+**/test-fixtures.js
+**/test-fixtures.d.ts
+**/test-fixtures/*
