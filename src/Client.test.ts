@@ -15,9 +15,47 @@ beforeEach(() => {
     fetchMock.resetMocks();
 });
 
-// TODO: 测试页数等选项对应生成的 URL
+// TODO: 测试重试次数（NetworkError, WhateverError, ApiException）
+
+function mockResponseOnceExpect({
+    pathname, queries,
+    response,
+}:{
+    pathname: string;
+    queries: Record<string, string | null>;
+    response: string
+}) {
+    fetchMock.mockResponseOnce((req: Request) => {
+        const url = new URL(req.url);
+        expect(url.pathname).toBe(pathname);
+        for (const [key, value] of Object.entries(queries)) {
+            expect(url.searchParams.get(key)).toBe(value);
+        }
+        expect(url.searchParams.get('appid')).not.toBeNull();
+        expect(url.searchParams.get('__t')).not.toBeNull();
+        return response;
+    });
+}
 
 describe("获取版块页面", () => {
+
+    test('请求 URL', async () => {
+        const client = createClient(false);
+
+        mockResponseOnceExpect({
+            pathname: `/Api/showf`,
+            queries: { id: '111', page: null },
+            response: '[]',
+        });
+        await client.getBoardPage({ boardId: 111 });
+
+        mockResponseOnceExpect({
+            pathname: `/Api/showf`,
+            queries: { id: '111', page: '1' },
+            response: '[]',
+        });
+        await client.getBoardPage({ boardId: 111, pageNumber: 1 });
+    });
 
     describe("登陆策略的处理、发送请求前对卡页的预先处理", () => {
         const clientWithoutUser = createClient(false);
@@ -110,6 +148,24 @@ describe("获取版块页面", () => {
 });
 
 describe("获取串页面", () => {
+
+    test('请求 URL', async () => {
+        const client = createClient(false);
+
+        mockResponseOnceExpect({
+            pathname: `/Api/thread/id/${1234567890}`,
+            queries: { page: null },
+            response: 'null',
+        });
+        await client.getThreadPage({ threadId: 1234567890 });
+
+        mockResponseOnceExpect({
+            pathname: `/Api/thread/id/${1234567890}`,
+            queries: { page: '1' },
+            response: 'null',
+        });
+        await client.getThreadPage({ threadId: 1234567890, pageNumber: 1 });
+    });
 
     describe("登陆策略的处理、发送请求前对卡页的预先处理", () => {
         const clientWithoutUser = createClient(false);

@@ -74,7 +74,7 @@ export class Client extends BaseClient {
         const { data } = await this.getJson('showf', {
             queries: {
                 id: String(boardId),
-                page: String(pageNumber),
+                ...(typeof pageNumber !== 'undefined' ? { page: String(pageNumber) } : {}),
             },
             withCookies,
             options: resolvedOptions,
@@ -117,7 +117,7 @@ export class Client extends BaseClient {
 
         const { data } = await this.getJson(`thread/id/${threadId}`, {
             queries: {
-                page: String(pageNumber),
+                ...(typeof pageNumber !== 'undefined' ? { page: String(pageNumber) } : {}),
             },
             withCookies,
             options: resolvedOptions,
