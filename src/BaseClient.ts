@@ -151,7 +151,8 @@ export class BaseClient {
         const resp = await this.fetchInstance(endpoint, {
             urlQueries: { ...queries },
             ...( withCookies ? { } : { jar: null }),
-            retryOn: currentAttempts => currentAttempts <= options.retries,
+            retryOn: (currentAttempts, err) =>
+                (err instanceof Error && err.name == 'NetworkError') && currentAttempts <= options.retries,
             // TODO: 提供一个 callback 以方便使用者打 log
             beforeRetry: err => console.log(err),
         });

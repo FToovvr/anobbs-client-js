@@ -1,6 +1,6 @@
 import { BaseClient, Options as BaseOptions, defaultOptions as baseDefaultOptions } from "./BaseClient";
 import { BoardThread, ThreadPage, ThreadPageRaw } from "./objects";
-import { GatekeptException, RequiresLoginException } from "./errors";
+import { GatekeptException, RequiresLoginException, throwApiException } from "./errors";
 import { createOptionsResolverWithDefaults } from "./utils/options-resolver";
 
 /**
@@ -79,6 +79,9 @@ export class Client extends BaseClient {
             withCookies,
             options: resolvedOptions,
         });
+        if (typeof data === 'string') {
+            throwApiException(data);
+        }
 
         return {
             data: (data as ThreadPageRaw[]).map(t => new BoardThread(t)),
@@ -119,6 +122,9 @@ export class Client extends BaseClient {
             withCookies,
             options: resolvedOptions,
         });
+        if (typeof data === 'string') {
+            throwApiException(data);
+        }
 
         return {
             data: new ThreadPage(data as ThreadPageRaw),

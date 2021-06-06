@@ -7,7 +7,7 @@ import { URL } from 'url';
 import { Request } from "node-fetch";
 
 import { LoginPolicy, defaultOptions } from "./Client";
-import { GatekeptException, RequiresLoginException } from './errors';
+import { ApiException, GatekeptException, RequiresLoginException, ThreadNotExistsException } from './errors';
 import { createClient } from "./test-fixtures/helpers";
 
 beforeEach(() => {
@@ -187,23 +187,46 @@ describe("获取串页面", () => {
 
     });
 
-    test.skip('实测', async () => {
-        fetchMock.dontMockOnce();
+    test('API 异常', async () => {
         const client = createClient(false);
-        const { data: thread } = await client.getThreadPage({ threadId: 49607 });
-        // console.log(utils.inspect(thread, { showHidden:true, colors: true, getters: true }));
 
-        expect(thread.userId).toBe("g3qeXeYq");
-        expect(thread.content).toBe("这是芦苇");
-        expect(thread.attachmentBase).not.toBeNull();
-        expect(thread.title).toBe("想歪的给我自重");
-        expect(thread.email).toBeNull();
-        const localCreatedAt = utcToZonedTime(thread.createdAt, 'Asia/Shanghai');
-        expect(
-            dateFns.format(localCreatedAt, 'y-MM-dd')
-            + "(" + "一二三四五六日"[(Number(dateFns.format(localCreatedAt, 'c'))-2+7)%7] + ")"
-            + dateFns.format(localCreatedAt, 'HH:mm:ss'),
-        ).toBe("2012-02-09(\u56db)01:08:45");
+        fetchMock.mockResponseOnce(`"\u8be5\u4e3b\u9898\u4e0d\u5b58\u5728"`);
+        await expect(client.getThreadPage({ threadId: 1234567890 })).rejects.toThrowError(ThreadNotExistsException);
+        fetchMock.mockResponseOnce('"Whatever"');
+        await expect(client.getThreadPage({ threadId: 1234567890 })).rejects.toThrowError(ApiException);
+        fetchMock.mockResponseOnce('"Whatever"');
+        await expect(client.getThreadPage({ threadId: 1234567890 })).rejects.not.toThrowError(ThreadNotExistsException);
+    });
+
+    describe.skip('实测', () => {
+
+        test('获取芦苇串', async () => {
+            fetchMock.dontMockOnce();
+            const client = createClient(false);
+            const { data: thread } = await client.getThreadPage({ threadId: 49607 });
+            // console.log(utils.inspect(thread, { showHidden:true, colors: true, getters: true }));
+
+            expect(thread.userId).toBe("g3qeXeYq");
+            expect(thread.content).toBe("这是芦苇");
+            expect(thread.attachmentBase).not.toBeNull();
+            expect(thread.title).toBe("想歪的给我自重");
+            expect(thread.email).toBeNull();
+            const localCreatedAt = utcToZonedTime(thread.createdAt, 'Asia/Shanghai');
+            expect(
+                dateFns.format(localCreatedAt, 'y-MM-dd')
+                + "(" + "一二三四五六日"[(Number(dateFns.format(localCreatedAt, 'c'))-2+7)%7] + ")"
+                + dateFns.format(localCreatedAt, 'HH:mm:ss'),
+            ).toBe("2012-02-09(\u56db)01:08:45");
+        });
+
+        test('登陆获取芦苇串 250 页', async () => {
+            fetchMock.dontMockOnce();
+            const client = createClient(true);
+            const { data: thread } = await client.getThreadPage({ threadId: 49607, pageNumber: 250 });
+
+            expect(thread.replies[0].id).toBeGreaterThan(10000000);
+        });
+
     });
 
     // TODO 登陆访问 100+ 页面

@@ -36,3 +36,25 @@ export class GatekeptException extends Error {
         super(fullMessage);
     }
 }
+
+export class ApiException extends Error {
+
+    rawText: string;
+
+    constructor(rawText: string) {
+        super(`API 异常: ${rawText}`);
+        this.rawText = rawText;
+    }
+
+}
+
+export class ThreadNotExistsException extends ApiException {}
+
+export function throwApiException(rawText: string): never {
+    switch (rawText) {
+    case '该主题不存在':
+        throw new ThreadNotExistsException(rawText);
+    default:
+        throw new ApiException(rawText);
+    }
+}
